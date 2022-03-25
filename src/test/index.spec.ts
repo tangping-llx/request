@@ -1,7 +1,8 @@
+
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { 
   transformKeyToLowerCamelCase, 
   transformParams, 
@@ -11,6 +12,24 @@ import {
 } from '../core'
 
 describe('test', () => {
+
+  vi.mock('axios', () => {
+    return {
+      'default': {
+        create: vi.fn(() => {
+          return {
+            get: vi.fn(async () => {
+              return {
+                status: 200,
+                data: null
+              }
+            })
+          }
+        })
+      }
+    }
+  })
+
   it('a_b transform to aB', () => {
     expect(transformKeyToLowerCamelCase('a_b')).toMatchInlineSnapshot('"aB"')
   })
@@ -41,7 +60,7 @@ describe('test', () => {
     expect(config).toMatchInlineSnapshot(`
       {
         "params": {
-          "aB": "aa",
+          "a_b": "aa",
         },
       }
     `)
@@ -53,11 +72,11 @@ describe('test', () => {
         aB: 'aa',
       }
     }
-    transformParams(config, false)
+    transformParams(config, 'lowerCamelCase')
     expect(config).toMatchInlineSnapshot(`
       {
         "params": {
-          "a_b": "aa",
+          "aB": "aa",
         },
       }
     `)
@@ -73,7 +92,7 @@ describe('test', () => {
     expect(config).toMatchInlineSnapshot(`
       {
         "data": {
-          "aB": "ab",
+          "a_b": "ab",
         },
       }
     `)
@@ -85,9 +104,11 @@ describe('test', () => {
     const config = {
       data: formData
     }
-    transformData(config)
+    transformData(config, 'lowerCamelCase')
     expect(config.data.get('aB')).toMatchInlineSnapshot('"ab"')
-    expect(config.data.get('a_b')).toBeNull()
+    transformData(config)
+    expect(config.data.get('aB')).toMatchInlineSnapshot('null')
+    expect(config.data.get('a_b')).toMatchInlineSnapshot('"ab"')
   })
 
   it('test transformRes', () => {
@@ -104,15 +125,22 @@ describe('test', () => {
     transformRes(config)
     expect(config).toMatchInlineSnapshot(`
       {
-        "daTa": {
-          "aB": "ab",
-          "aC": [
+        "da_ta": {
+          "a_b": "ab",
+          "a_c": [
             {
-              "aB": "b",
+              "a_b": "b",
             },
           ],
         },
       }
     `)
+  })
+  it('test useRequest create tobecalled', async () => {
+    const { default: axios } = await import('axios')
+    const { useRequest } = await import('../index')
+    const { get } = useRequest()
+    get('aa')
+    expect(axios.create).toBeCalled()
   })
 })

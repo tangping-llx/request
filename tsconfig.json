@@ -9,10 +9,7 @@
     "strictNullChecks": true,
     "resolveJsonModule": true,
     "allowJs": false,
-    "types": [
-      "node",
-      "minimist"
-    ],
+    "types": [],
     "paths": {
       "common/*": ["./common/*"]
     }

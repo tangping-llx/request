@@ -1,72 +1,139 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from 'axios'
 import { 
-  TransformOptions, 
-  transformParams, 
-  transformData, 
   Options, 
   ExtraOptions, 
   baseExtra,
-  transformRes
+  transformRequest,
+  transformResponse,
+  TransformOptions
 } from './core'
 
-
-const transformRequest = ({
-  parametersLowerCamelCase,
-  dataLowerCamelCase
-}: Omit<TransformOptions, 'responceLowerCamelCase'>, config?: AxiosRequestConfig) => {
-  parametersLowerCamelCase && transformParams(config)
-  dataLowerCamelCase && transformData(config)
+const handleResponse = <T>(response: AxiosResponse, responseType: TransformOptions['responseType']) => {
+  if ((response as unknown as AxiosResponse<T>).status === 200) {
+    transformResponse(response as unknown as AxiosResponse<T>, responseType)
+  }
 }
 
-const transformResponse = (responceLowerCamelCase: boolean, config: AxiosResponse) => {
-  responceLowerCamelCase && transformRes(config.data.data, responceLowerCamelCase)
+const getConfig = (extra: ExtraOptions, extraLocal: ExtraOptions) => {
+  const parametersType = extraLocal.parametersType || extra.parametersType
+  const responseType = extraLocal.responseType || extra.responseType
+  const dataType = extraLocal.dataType || extra.dataType
+  const responseData = extraLocal.responseData || extra.responseData
+  return {
+    parametersType,
+    responseType,
+    dataType,
+    responseData
+  }
+}
+
+const fetch = <T = any, R = AxiosResponse<T>, D = any> ({
+  method,
+  url,
+  config,
+  extraLocal,
+  extra,
+  instance
+}: FetchOptions<D>) => {
+  const {
+    parametersType,
+    responseType,
+    dataType,
+    responseData
+  } = getConfig(extra, extraLocal)
+  transformRequest({
+    parametersType,
+    dataType
+  }, config)
+  return instance[method]<T, R, D>(url, config).then(response => {
+    const res = response as unknown as AxiosResponse<T> 
+    handleResponse<T>(res, responseType)
+    return responseData && res.status === 200 ? res.data : res
+  })
 }
 
 export const useRequest = (opt?: Options, extra: ExtraOptions = baseExtra) => {
   const axiosInstance = axios.create(opt)
-  function get <T = any, R = AxiosResponse<T>, D = any>(url: string, config?: AxiosRequestConfig<D>, extraLocal: ExtraOptions = baseExtra) {
-    const parametersLowerCamelCase = extraLocal.parametersLowerCamelCase || extra.parametersLowerCamelCase
-    const responceLowerCamelCase = extraLocal.responceLowerCamelCase || extra.responceLowerCamelCase
-    const dataLowerCamelCase = extraLocal.dataLowerCamelCase || extra.dataLowerCamelCase
-    transformRequest({
-      parametersLowerCamelCase,
-      dataLowerCamelCase
-    }, config)
-    return axiosInstance.get<T, R, D>(url, config).then(response => {
-      if ((response as unknown as AxiosResponse<T>).status === 200) {
-        transformResponse(responceLowerCamelCase, response as unknown as AxiosResponse<T>)
-      }
-      return response
+  function get <T = any, R = AxiosResponse<T>, D = any>(url: string, config?: D & AxiosRequestConfig<D>, extraLocal: ExtraOptions = baseExtra) {
+    return fetch<T, R, D>({
+      method: 'get',
+      url,
+      config,
+      extra,
+      extraLocal,
+      instance: axiosInstance
     })
   }
-  function post () {
-
+  function post <T = any, R = AxiosResponse<T>, D = any>(url: string, config?: D & AxiosRequestConfig<D>, extraLocal: ExtraOptions = baseExtra) {
+    return fetch<T, R, D>({
+      method: 'post',
+      url,
+      config,
+      extra,
+      extraLocal,
+      instance: axiosInstance
+    })
   }
-  function del() {
-
+  function del <T = any, R = AxiosResponse<T>, D = any>(url: string, config?: D & AxiosRequestConfig<D>, extraLocal: ExtraOptions = baseExtra) {
+    return fetch<T, R, D>({
+      method: 'delete',
+      url,
+      config,
+      extra,
+      extraLocal,
+      instance: axiosInstance
+    })
   }
-  function head() {
-
+  function head<T = any, R = AxiosResponse<T>, D = any>(url: string, config?: D & AxiosRequestConfig<D>, extraLocal: ExtraOptions = baseExtra) {
+    return fetch<T, R, D>({
+      method: 'head',
+      url,
+      config,
+      extra,
+      extraLocal,
+      instance: axiosInstance
+    })
   }
-  function options() {
-
+  function options<T = any, R = AxiosResponse<T>, D = any>(url: string, config?: D & AxiosRequestConfig<D>, extraLocal: ExtraOptions = baseExtra) {
+    return fetch<T, R, D>({
+      method: 'options',
+      url,
+      config,
+      extra,
+      extraLocal,
+      instance: axiosInstance
+    })
   }
-  function put() {
-
+  function put<T = any, R = AxiosResponse<T>, D = any>(url: string, config?: D & AxiosRequestConfig<D>, extraLocal: ExtraOptions = baseExtra) {
+    return fetch<T, R, D>({
+      method: 'put',
+      url,
+      config,
+      extra,
+      extraLocal,
+      instance: axiosInstance
+    })
   }
-  function patch() {
-
+  function patch<T = any, R = AxiosResponse<T>, D = any>(url: string, config?: D & AxiosRequestConfig<D>, extraLocal: ExtraOptions = baseExtra) {
+    return fetch<T, R, D>({
+      method: 'patch',
+      url,
+      config,
+      extra,
+      extraLocal,
+      instance: axiosInstance
+    })
   }
-  function purge() {
-
+  function purge<T = any, R = AxiosResponse<T>, D = any>(url: string, config?: D & AxiosRequestConfig<D>, extraLocal: ExtraOptions = baseExtra) {
+    return fetch<T, R, D>({
+      method: 'patch',
+      url,
+      config,
+      extra,
+      extraLocal,
+      instance: axiosInstance
+    })
   }
-  function link() {
-
-  }
-  function unlink() {
-
-  }
-
   return {
     instance: axiosInstance,
     get,
@@ -76,8 +143,17 @@ export const useRequest = (opt?: Options, extra: ExtraOptions = baseExtra) => {
     post,
     put,
     patch,
-    purge,
-    link,
-    unlink
+    purge
   }
+}
+
+type Method = 'get' | 'post' | 'delete' | 'head' | 'options' | 'put' | 'patch'
+
+type FetchOptions<D = any> = {
+  method: Method,
+  url: string,
+  config?: D & AxiosRequestConfig<D>,
+  extraLocal: ExtraOptions,
+  instance: AxiosInstance,
+  extra: ExtraOptions
 }

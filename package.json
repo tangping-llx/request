@@ -1,18 +1,27 @@
 {
-  "name": "request",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "@tonyptang/request",
+  "version": "0.0.2",
+  "main": "./dist/index.js",
   "scripts": {
     "test": "vitest --dom",
     "build": "tsup"
   },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index"
+    }
+  },
+  "types": "./dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://gitee.com/tang-ping-y/request.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "axios",
+    "request"
+  ],
+  "author": "tonyptang",
   "license": "ISC",
   "packageManager": "pnpm@6.32.3",
   "dependencies": {
@@ -22,6 +31,8 @@
     "happy-dom": "^2.50.0",
     "jsdom": "^19.0.0",
     "tsup": "^5.12.1",
+    "typescript": "^4.6.3",
     "vitest": "^0.7.8"
-  }
+  },
+  "description": ""
 }
